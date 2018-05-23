@@ -209,7 +209,7 @@ class TopologicalMap(object):
 
     def remove_node(self, node):
 
-        # sanity check wheter node can be removed
+        # sanity check whether node can be removed
         if len(node.neighbors) > 0 or len(node.edges) > 0:
             raise Exception('this node, %s, cannot be removed!' % node.uuid)
 
@@ -260,14 +260,14 @@ class TopologicalMap(object):
                     second = node
                 continue
 
-            # node is further away from stimulus then second
+            # node is further away from stimulus than second
             if node_dist >= self.dist(second.pos, stimulus):
                 continue
             # stimulus between nearest and second
             elif node_dist >= self.dist(nearest.pos, stimulus):
                 second = node
                 continue
-            # stimulus nearer than nearest
+            # node is closer to stimulus than nearest
             else:
                 second = nearest
                 nearest = node
@@ -277,7 +277,7 @@ class TopologicalMap(object):
 
         # some small sanity check
         if nearest == second:
-            raise Exception('nearst cannot be second nearest!')
+            raise Exception('nearest cannot be second nearest!')
 
         return nearest, second
 
