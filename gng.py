@@ -34,8 +34,8 @@ class GNG(TopologicalMap):
     def prepare(self):
 
         # add two initial nodes
-        self.add_node(random.choice(data))
-        self.add_node(random.choice(data))
+        self.add_node(random.choice(self.data))
+        self.add_node(random.choice(self.data))
 
         # increment timestep
         self.timestep += 2
