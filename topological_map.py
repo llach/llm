@@ -58,6 +58,13 @@ class Node:
 
         raise Exception('neighbor %s is unknown!' % n.uuid)
 
+    def prepare_removal(self):
+        for e in self.edges:
+            neigh = e.get_other_node(self)
+            neigh.neighbors.remove(self)
+            neigh.edges.remove(e)
+
+
 
 class Edge:
 
@@ -110,6 +117,12 @@ class Edge:
     # update line after nodes position change
     def update_plot_item(self):
         self.line.setData(pos=np.array([self.n0.pos, self.n1.pos]))
+
+    def get_other_node(self, n):
+        if self.n0 is n:
+            return self.n1
+        else:
+            return self.n0
 
 
 class TopologicalMap(object):
@@ -221,7 +234,9 @@ class TopologicalMap(object):
         if self.debug:
             print('removing node %s' % node.uuid)
 
+        node.prepare_removal()
         self.edges -= node.edges
+
         self.nodes.remove(node)
 
     def remove_edge(self, e):
