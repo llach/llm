@@ -11,8 +11,11 @@ class GNG(TopologicalMap):
 
         self.name = 'GNG - Growing Neural Gas'
 
+        self.node_min = kwargs.get('node_min', 2)
+        self.node_max = kwargs.get('node_max', 100)
+
         # init from superclass
-        super(GNG, self).__init__(*args, **kwargs)
+        super(GNG, self).__init__(*args, node_min=self.node_min, node_max=self.node_max, **kwargs)
 
         # network parameter
         self.eta_n = kwargs.get('eta_n', .7)
@@ -107,9 +110,13 @@ class GNG(TopologicalMap):
             # create error reducing node r
             r_node = self.add_node(r_node_position)
 
+            # be aware of node max!
+            if r_node is None:
+                return
+
             # replace edge q <---> p with edges q <-> r <-> p
             self.remove_edge(self.q_node.get_edge_to_neighbor(p_node))
-            
+
             self.add_edge(self.q_node, r_node)
             self.add_edge(p_node, r_node)
 
@@ -143,7 +150,7 @@ class GNG(TopologicalMap):
 if __name__ == '__main__':
     data = np.random.rand(200, 3)
 
-    gng = GNG(debug=False)
+    gng = GNG(debug=True)
     gng.run(data)
 
 

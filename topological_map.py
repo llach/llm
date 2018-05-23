@@ -152,6 +152,10 @@ class TopologicalMap(object):
         self.node_count = 0
         self.edge_count = 0
 
+        # minimum and maximum nodes
+        self.node_min = kwargs.get('node_min', None)
+        self.node_max = kwargs.get('node_max', None)
+
         # save reference to training data
         self.data = None
 
@@ -167,8 +171,20 @@ class TopologicalMap(object):
         self.w.show()
         self.w.setWindowTitle(self.name)
 
-        g = gl.GLGridItem()
-        self.w.addItem(g)
+        gx = gl.GLGridItem(QtGui.QVector3D(1,1,1))
+        gx.rotate(90, 0, 1, 0)
+        gx.translate(0, .5, .5)
+        gx.setSpacing(spacing=QtGui.QVector3D(.1,.1,.1))
+        self.w.addItem(gx)
+        gy = gl.GLGridItem(QtGui.QVector3D(1,1,1))
+        gy.rotate(90, 1, 0, 0)
+        gy.translate(.5, 0, .5)
+        gy.setSpacing(spacing=QtGui.QVector3D(.1, .1, .1))
+        self.w.addItem(gy)
+        gz = gl.GLGridItem(QtGui.QVector3D(1,1,1))
+        gz.translate(.5, .5, 0)
+        gz.setSpacing(spacing=QtGui.QVector3D(.1, .1, .1))
+        self.w.addItem(gz)
 
         # create timer that calls train function
         self.t = QtCore.QTimer()
@@ -194,6 +210,10 @@ class TopologicalMap(object):
             e.update_plot_item()
 
     def add_node(self, position, grid_position=None):
+
+        if self.node_max is not None and self.node_count >= self.node_max:
+            print('Node Maximum reached!')
+            return
 
         # create and add node to network
         n = Node(position, grid_position)
@@ -224,6 +244,10 @@ class TopologicalMap(object):
         return e
 
     def remove_node(self, node):
+
+        if self.node_min is not None and self.node_count <= self.node_min:
+            print('Node Minimum reached!')
+            return
 
         # sanity check whether node can be removed
         if len(node.neighbors) > 0 or len(node.edges) > 0:
