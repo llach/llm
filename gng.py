@@ -82,7 +82,7 @@ class GNG(TopologicalMap):
             self.remove_node(dn)
 
 
-    def node_update(self, n, stimulus):
+    def node_update(self, n, s, stimulus):
 
         # increase winners error
         n.error += self.dist(n.pos, stimulus)**2
@@ -137,7 +137,7 @@ class GNG(TopologicalMap):
         self.edge_update(n, s)
 
         # update nodes
-        self.node_update(n, stimulus)
+        self.node_update(n, s, stimulus)
 
 
 if __name__ == '__main__':

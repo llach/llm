@@ -99,7 +99,7 @@ class Edge:
         self.n0.edges.remove(self)
         self.n1.edges.remove(self)
 
-    # checks wheter this edge connects given node n
+    # checks whether this edge connects given node n
     def has_node(self, n):
 
         if self.n0 is n or self.n1 is n:
@@ -214,13 +214,14 @@ class TopologicalMap(object):
 
         # sanity check whether node can be removed
         if len(node.neighbors) > 0 or len(node.edges) > 0:
-            raise Exception('this node, %s, cannot be removed!' % node.uuid)
+            print("debug: node removed that had neighbors or edges")
 
         self.node_count -= 1
 
         if self.debug:
             print('removing node %s' % node.uuid)
 
+        self.edges -= node.edges
         self.nodes.remove(node)
 
     def remove_edge(self, e):
@@ -341,9 +342,8 @@ class TopologicalMap(object):
     def edge_update(self, n, s):
         raise NotImplementedError
 
-    def node_update(self, n, stimulus):
+    def node_update(self, n, s, stimulus):
         raise NotImplementedError
 
     def train(self):
         raise NotImplementedError
-
