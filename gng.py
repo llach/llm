@@ -139,11 +139,6 @@ class GNG(TopologicalMap):
         # update nodes
         self.node_update(n, stimulus)
 
-        # plot network
-        self.draw()
-
-        # increment timestep
-        self.timestep += 1
 
 if __name__ == '__main__':
     data = np.random.rand(200, 3)
