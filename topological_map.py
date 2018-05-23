@@ -190,7 +190,7 @@ class TopologicalMap(object):
         self.node_count += 1
 
         if self.debug:
-            print('created node %s' % n.uuid)
+            print('created node %s at %s' % (n.uuid, str(n.pos)))
 
         return n
 
@@ -288,8 +288,20 @@ class TopologicalMap(object):
     # takes care of training and visualization
     def run(self, data):
 
-        # store data reference
-        self.data = data
+        # check dimensionality of data. add zeros if needed
+        if data.shape[1] < 3:
+
+            # determine number of zeros to be added
+            missing_dims = 3 - data.shape[1]
+
+            for d in data:
+                if self.data is None:
+                    self.data = np.array([np.append(d, missing_dims * [0])])
+                else:
+                    self.data = np.vstack((self.data, np.append(d, missing_dims * [0])))
+        else:
+            # store data reference
+            self.data = data
 
         # number of datapoints
         n = data.shape[0]
@@ -299,7 +311,7 @@ class TopologicalMap(object):
         size = np.array(n * [0.02])
 
         # plot data distribution
-        self.dist_plot = gl.GLScatterPlotItem(pos=data, size=size, color=color, pxMode=False)
+        self.dist_plot = gl.GLScatterPlotItem(pos=self.data, size=size, color=color, pxMode=False)
         self.w.addItem(self.dist_plot)
 
         # plot nodes
