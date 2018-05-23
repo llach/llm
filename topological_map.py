@@ -139,6 +139,10 @@ class TopologicalMap(object):
         self.node_count = 0
         self.edge_count = 0
 
+        # minimum and maximum nodes
+        self.node_min = kwargs.get('node_min', None)
+        self.node_max = kwargs.get('node_max', None)
+
         # save reference to training data
         self.data = None
 
@@ -153,10 +157,6 @@ class TopologicalMap(object):
         self.w.opts['distance'] = 3
         self.w.show()
         self.w.setWindowTitle(self.name)
-
-        # g = gl.GLGridItem(QtGui.QVector3D(1,1,0))
-        # g.translate(0, 0, -.5)
-        # self.w.addItem(g)
 
         gx = gl.GLGridItem(QtGui.QVector3D(1,1,1))
         gx.rotate(90, 0, 1, 0)
@@ -198,6 +198,10 @@ class TopologicalMap(object):
 
     def add_node(self, position, grid_position=None):
 
+        if self.node_max is not None and self.node_count >= self.node_max:
+            print('Node Maximum reached!')
+            return
+
         # create and add node to network
         n = Node(position, grid_position)
         self.nodes.add(n)
@@ -227,6 +231,10 @@ class TopologicalMap(object):
         return e
 
     def remove_node(self, node):
+
+        if self.node_min is not None and self.node_count <= self.node_min:
+            print('Node Minimum reached!')
+            return
 
         # sanity check whether node can be removed
         if len(node.neighbors) > 0 or len(node.edges) > 0:
