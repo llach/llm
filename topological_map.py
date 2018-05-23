@@ -154,8 +154,24 @@ class TopologicalMap(object):
         self.w.show()
         self.w.setWindowTitle(self.name)
 
-        g = gl.GLGridItem()
-        self.w.addItem(g)
+        # g = gl.GLGridItem(QtGui.QVector3D(1,1,0))
+        # g.translate(0, 0, -.5)
+        # self.w.addItem(g)
+
+        gx = gl.GLGridItem(QtGui.QVector3D(1,1,1))
+        gx.rotate(90, 0, 1, 0)
+        gx.translate(0, .5, .5)
+        gx.setSpacing(spacing=QtGui.QVector3D(.1,.1,.1))
+        self.w.addItem(gx)
+        gy = gl.GLGridItem(QtGui.QVector3D(1,1,1))
+        gy.rotate(90, 1, 0, 0)
+        gy.translate(.5, 0, .5)
+        gy.setSpacing(spacing=QtGui.QVector3D(.1, .1, .1))
+        self.w.addItem(gy)
+        gz = gl.GLGridItem(QtGui.QVector3D(1,1,1))
+        gz.translate(.5, .5, 0)
+        gz.setSpacing(spacing=QtGui.QVector3D(.1, .1, .1))
+        self.w.addItem(gz)
 
         # create timer that calls train function
         self.t = QtCore.QTimer()
