@@ -29,7 +29,7 @@ def euclidean_dist(x, y):
 
 class Node:
 
-    def __init__(self, pos):
+    def __init__(self, pos, grid_position=None):
 
         # UUID
         self.uuid = str(uuid.uuid4())[:8]
@@ -45,6 +45,9 @@ class Node:
 
         # initialize node error with zero
         self.error = 0
+
+        # grid position for som
+        self.grid_position = grid_position
 
     # edge to n is returned or exception thrown
     def get_edge_to_neighbor(self, n):
@@ -177,10 +180,10 @@ class TopologicalMap(object):
         for e in self.edges:
             e.update_plot_item()
 
-    def add_node(self, position):
+    def add_node(self, position, grid_position=None):
 
         # create and add node to network
-        n = Node(position)
+        n = Node(position, grid_position)
         self.nodes.add(n)
 
         # increase node count
