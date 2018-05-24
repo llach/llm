@@ -66,7 +66,30 @@ class Node:
             neigh.neighbors.remove(self)
             neigh.edges.remove(e)
 
+    # for grid nodes: get neighbors within radius r
+    def get_grid_neighbors(self, radius=1):
 
+        # first, add ourselves to the set
+        neighbors = set([self])
+
+        for i in range(radius):
+
+            # neighbors in next radius
+            new_neighbors = set([])
+
+            # collect neighbors of currently known nodes
+            for n in neighbors:
+                for x in n.neighbors:
+                    new_neighbors.add(x)
+
+            # add neighbors
+            for x in new_neighbors:
+                neighbors.add(x)
+
+        # we are not our neighbors
+        neighbors.remove(self)
+
+        return neighbors
 
 class Edge:
 
@@ -167,6 +190,7 @@ class TopologicalMap(object):
 
         # save reference to training data
         self.data = None
+        self.data_dim = None
 
         # data for network plotting
         self.node_positions = None
@@ -351,6 +375,9 @@ class TopologicalMap(object):
         else:
             # store data reference
             self.data = data
+
+        # store data dimensionality
+        self.data_dim = data.shape[1]
 
         # number of datapoints
         n = data.shape[0]
