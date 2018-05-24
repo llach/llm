@@ -20,9 +20,9 @@ class SOM(TopologicalMap):
         # network parameter
         self.network_size = kwargs.get('network_size', 7)
         self.dim = kwargs.get('dim', 3)
-        self.sigma = kwargs.get('sigma', 10)
-        self.eta = kwargs.get('eta', .7)
-        self.max_iterations = kwargs.get('max_iterations', 300)
+        self.sigma = kwargs.get('sigma', 7.5)
+        self.eta = kwargs.get('eta', .8)
+        self.max_iterations = kwargs.get('max_iterations', 1000)
 
         if self.dim > 3:
             raise Exception('Maximum dimension for SOM is 3!')
@@ -74,9 +74,8 @@ class SOM(TopologicalMap):
     # wraps super.add_node for randomly initialized grids
     def add_grid_node(self, grid_position):
 
-        # sample random 3D position
-        # TODO maybe also enforce D(SOM) <= D(data) here by multiplying with random datapoint
-        position = np.random.rand(3)
+        # sample random 3D position, project in data space
+        position = np.multiply(np.random.rand(3), random.choice(self.data))
 
         # create node and edges
         n = self.add_node(position, grid_position)
@@ -106,11 +105,16 @@ class SOM(TopologicalMap):
     def adapt(self, node, stimulus):
 
         # ... or let r = 0?
-        radius = int(max(math.floor(self.sigma), 1))
+        radius = int(max(math.floor(self.sigma), 0))
 
+        # find neighbors
         neighbors = node.get_grid_neighbors(radius=radius)
 
-        # TODO adapt weights
+        # adapt weights
+        for c in neighbors:
+            h = math.exp( -((self.dist(c.grid_position, node.grid_position) ** 2) / (2*self.sigma**2)) )
+
+            c.pos += self.eta * h * np.subtract(stimulus, c.pos)
 
     def edge_update(self, n, s):
         pass
@@ -133,12 +137,14 @@ class SOM(TopologicalMap):
         # adapt winner and neighbors
         self.adapt(n, stimulus)
 
-        # TODO decrease eta and sigma
+        # decrease eta and sigma
+        self.eta -= 0.005 * self.eta
+        self.sigma -= 0.005 * self.sigma
 
 if __name__ == '__main__':
-    data = np.random.rand(200, 2)
+    data = np.random.rand(200, 3)
 
-    som = SOM(dim=3, debug=False)
+    som = SOM(dim=2, max_iterations=10000)
     som.run(data)
 
 
