@@ -104,6 +104,9 @@ class SOM(TopologicalMap):
 
     def adapt(self, node, stimulus):
 
+        # for llm, store delta w and w
+        delta_w_list = []
+
         # ... or let r = 0?
         radius = int(max(math.floor(self.sigma), 0))
 
@@ -114,7 +117,14 @@ class SOM(TopologicalMap):
         for c in neighbors:
             h = math.exp( -((self.dist(c.grid_position, node.grid_position) ** 2) / (2*self.sigma**2)) )
 
-            c.pos += self.eta * h * np.subtract(stimulus, c.pos)
+            dw = self.eta * h * np.subtract(stimulus, c.pos)
+            c.pos += dw
+
+            delta_w_list.append((c, dw))
+
+        return delta_w_list
+
+
 
     def edge_update(self, n, s):
         pass
@@ -135,16 +145,18 @@ class SOM(TopologicalMap):
         n, _ = self.find_nearest(stimulus)
 
         # adapt winner and neighbors
-        self.adapt(n, stimulus)
+        delta_w = self.adapt(n, stimulus)
 
         # decrease eta and sigma
         self.eta -= 0.005 * self.eta
         self.sigma -= 0.005 * self.sigma
 
+        return delta_w, stimulus, n, None
+
 if __name__ == '__main__':
     data = np.random.rand(200, 3)
 
-    som = SOM(dim=2, max_iterations=10000)
+    som = SOM(dim=2, max_iterations=10000, visualization=True)
     som.run(data)
 
 

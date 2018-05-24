@@ -44,13 +44,24 @@ class GNG(TopologicalMap):
         self.timestep += 2
 
     def adapt(self, node, stimulus):
+
+        # for llm, store delta w and w
+        delta_w_list = []
         
         # adapt winner position
-        node.pos += self.eta_n * (np.subtract(stimulus, node.pos))
+        dw = self.eta_n * (np.subtract(stimulus, node.pos))
+        node.pos += dw
+
+        delta_w_list.append((node, dw))
 
         # adapt neighbor positions
         for n in node.neighbors:
-            n.pos += self.eta_c * (np.subtract(stimulus, n.pos))
+            dw = self.eta_c * (np.subtract(stimulus, n.pos))
+            n.pos += dw
+
+            delta_w_list.append((n, dw))
+
+        return delta_w_list
 
     def edge_update(self, n, s):
          
@@ -138,7 +149,7 @@ class GNG(TopologicalMap):
         n, s = self.find_nearest(stimulus)
 
         # adapt winner
-        self.adapt(n, stimulus)
+        delta_w = self.adapt(n, stimulus)
 
         # update edges
         self.edge_update(n, s)
@@ -146,11 +157,13 @@ class GNG(TopologicalMap):
         # update nodes
         self.node_update(n, s, stimulus)
 
+        return delta_w, stimulus, n, s
+
 
 if __name__ == '__main__':
     data = np.random.rand(200, 3)
 
-    gng = GNG(loggerlevel='INFO')
+    gng = GNG(loggerlevel='INFO', visualization=True)
     gng.run(data)
 
 
