@@ -236,7 +236,9 @@ class TopologicalMap(object):
         return n
 
     def add_edge(self, n0, n1):
-
+        # check whether nodes are already connected
+        if n0 in n1.neighbors or n1 in n0.neighbors:
+            return
         # create edge
         e = Edge(n0, n1)
         self.edges.add(e)
@@ -258,7 +260,7 @@ class TopologicalMap(object):
 
         # sanity check whether node can be removed
         if len(node.neighbors) > 0 or len(node.edges) > 0:
-            self.logger.debug("debug: node removed that had neighbors or edges")
+            self.logger.debug("node removed that had neighbors or edges")
 
         self.node_count -= 1
 
