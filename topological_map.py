@@ -86,9 +86,6 @@ class Node:
             for x in new_neighbors:
                 neighbors.add(x)
 
-        # we are not our neighbors
-        neighbors.remove(self)
-
         return neighbors
 
 class Edge:
