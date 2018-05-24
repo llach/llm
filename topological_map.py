@@ -8,7 +8,8 @@ import uuid
 import numpy as np
 import math
 import random
-
+import logging
+logging.DEBUG
 
 # calculate euclidean distance for vectors x and y
 def euclidean_dist(x, y):
@@ -58,6 +59,7 @@ class Node:
 
         raise Exception('neighbor %s is unknown!' % n.uuid)
 
+    # removes itself from the neighbor list of all nodes it has an edge to and also removes the edge from the neighboring nodes
     def prepare_removal(self):
         for e in self.edges:
             neigh = e.get_other_node(self)
@@ -118,11 +120,14 @@ class Edge:
     def update_plot_item(self):
         self.line.setData(pos=np.array([self.n0.pos, self.n1.pos]))
 
+    # gives a node to the edge and returns the other node
     def get_other_node(self, n):
         if self.n0 is n:
             return self.n1
-        else:
+        elif self.n1 is n:
             return self.n0
+        else:
+            raise Exception("Node not part of the edge!")
 
 
 class TopologicalMap(object):
@@ -132,8 +137,12 @@ class TopologicalMap(object):
         if self.name is None:
             self.name = '--unnamed--'
 
-        # True for debug output
-        self.debug = kwargs.get('debug', False)
+        # creating logger
+        logging.basicConfig()
+        self.loggerlevel = kwargs.get('loggerlevel', 'WARNING')
+        self.logger = logging.getLogger()
+        self.logger.setLevel(self.loggerlevel)
+        print("Initialized logger on level "+self.loggerlevel)
 
         # distance function to use
         self.dist = kwargs.get('dist', euclidean_dist)
@@ -212,7 +221,7 @@ class TopologicalMap(object):
     def add_node(self, position, grid_position=None):
 
         if self.node_max is not None and self.node_count >= self.node_max:
-            print('Node Maximum reached!')
+            self.logger.info('Node Maximum reached!')
             return
 
         # create and add node to network
@@ -222,8 +231,7 @@ class TopologicalMap(object):
         # increase node count
         self.node_count += 1
 
-        if self.debug:
-            print('created node %s at %s' % (n.uuid, str(n.pos)))
+        self.logger.debug('created node %s at %s' % (n.uuid, str(n.pos)))
 
         return n
 
@@ -235,8 +243,7 @@ class TopologicalMap(object):
 
         self.edge_count += 1
 
-        if self.debug:
-            print('created edge %s' % e.uuid)
+        self.logger.debug('created edge %s' % e.uuid)
 
         # add edge to plot
         self.w.addItem(e.line)
@@ -246,17 +253,16 @@ class TopologicalMap(object):
     def remove_node(self, node):
 
         if self.node_min is not None and self.node_count <= self.node_min:
-            print('Node Minimum reached!')
+            self.logger.info('Node Minimum reached!')
             return
 
         # sanity check whether node can be removed
         if len(node.neighbors) > 0 or len(node.edges) > 0:
-            print("debug: node removed that had neighbors or edges")
+            self.logger.debug("debug: node removed that had neighbors or edges")
 
         self.node_count -= 1
 
-        if self.debug:
-            print('removing node %s' % node.uuid)
+        self.logger.debug('removing node %s' % node.uuid)
 
         node.prepare_removal()
         self.edges -= node.edges
@@ -265,8 +271,7 @@ class TopologicalMap(object):
 
     def remove_edge(self, e):
 
-        if self.debug:
-            print('removing edge %s' % e.uuid)
+        self.logger.debug('removing edge %s' % e.uuid)
 
         # get edge ready for safe removal
         e.prepare_removal()
@@ -315,12 +320,15 @@ class TopologicalMap(object):
                 second = nearest
                 nearest = node
 
-        if self.debug:
-            print('nearest: %s; second: %s' % (nearest.uuid, second.uuid))
+        self.logger.debug('nearest: %s; second: %s' % (nearest.uuid, second.uuid))
 
         # some small sanity check
         if nearest == second:
             raise Exception('nearest cannot be second nearest!')
+
+        if nearest == None or second == None:
+            self.logger.critical('nearest or second nearest node was None!')
+            raise Exception('nearest or second was none')
 
         return nearest, second
 
@@ -372,8 +380,7 @@ class TopologicalMap(object):
 
     def train_wrapped(self):
 
-        if self.debug:
-            print('Network Timestep: %d\n#Nodes: %d\n#Edges: %d' % (self.timestep, self.node_count, self.edge_count))
+        self.logger.debug('Network Timestep: %d\n#Nodes: %d\n#Edges: %d' % (self.timestep, self.node_count, self.edge_count))
 
         # call overridden train function
         self.train()

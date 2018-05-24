@@ -16,7 +16,6 @@ class GNG(TopologicalMap):
 
         # init from superclass
         super(GNG, self).__init__(*args, node_min=self.node_min, node_max=self.node_max, **kwargs)
-
         # network parameter
         self.eta_n = kwargs.get('eta_n', .7)
         self.eta_c = kwargs.get('eta_c', .4)
@@ -33,6 +32,7 @@ class GNG(TopologicalMap):
 
         # store node with highest error to avoid costly searching
         self.q_node = None
+        self.logger.debug('Initialized '+self.name)
 
     def prepare(self):
 
@@ -150,7 +150,7 @@ class GNG(TopologicalMap):
 if __name__ == '__main__':
     data = np.random.rand(200, 3)
 
-    gng = GNG(debug=True)
+    gng = GNG(loggerlevel='INFO')
     gng.run(data)
 
 
