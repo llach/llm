@@ -237,7 +237,7 @@ class TopologicalMap(object):
 
     def add_edge(self, n0, n1):
         # check whether nodes are already connected
-        if n0 in n1.neighbors or n1 in n0.neighbors:
+        if n0 in n1.neighbors: # or n1 in n0.neighbors:
             return
         # create edge
         e = Edge(n0, n1)
