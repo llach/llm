@@ -69,9 +69,6 @@ class Node:
             for x in new_neighbors:
                 neighbors.add(x)
 
-        # we are not our neighbors
-        neighbors.remove(self)
-
         return neighbors
 
 class Edge:
@@ -143,6 +140,9 @@ class TopologicalMap(object):
         if self.name is None:
             self.name = '--unnamed--'
 
+        # should this network also visualize itself?
+        self.viz = kwargs.get('visualization', False)
+
         # creating logger
         logging.basicConfig()
         self.loggerlevel = kwargs.get('loggerlevel', 'WARNING')
@@ -179,6 +179,10 @@ class TopologicalMap(object):
         self.node_positions = None
         self.node_colors = None
         self.node_sizes = None
+
+        # no need to prepare plotting if it is not needed
+        if not self.viz:
+            return
 
         # prepare QTGraph
         self.app = QtGui.QApplication([])
@@ -255,7 +259,8 @@ class TopologicalMap(object):
         self.logger.debug('created edge %s' % e.uuid)
 
         # add edge to plot
-        self.w.addItem(e.line)
+        if self.viz:
+            self.w.addItem(e.line)
 
         return e
 
@@ -291,7 +296,8 @@ class TopologicalMap(object):
         self.edges.remove(e)
 
         # remove edge from plot widget
-        self.w.removeItem(e.line)
+        if self.viz:
+            self.w.removeItem(e.line)
 
     def find_nearest(self, stimulus):
 
@@ -362,6 +368,13 @@ class TopologicalMap(object):
         # store data dimensionality
         self.data_dim = data.shape[1]
 
+        # prepare network
+        self.prepare()
+
+        # skip viz if not needed
+        if not self.viz:
+            return
+
         # number of datapoints
         n = data.shape[0]
 
@@ -378,9 +391,6 @@ class TopologicalMap(object):
                                               pxMode=False)
         self.w.addItem(self.node_plot)
 
-        # prepare network
-        self.prepare()
-
         # plot network
         self.draw()
 
@@ -395,13 +405,16 @@ class TopologicalMap(object):
         self.logger.debug('Network Timestep: %d\n#Nodes: %d\n#Edges: %d' % (self.timestep, self.node_count, self.edge_count))
 
         # call overridden train function
-        self.train()
+        delta_w, x, n, s = self.train()
 
-        # plot network
-        self.draw()
+        # plot network, if viz is enabled
+        if self.viz:
+            self.draw()
 
         # increment timestep
         self.timestep += 1
+
+        return delta_w, x, n, s
 
     def prepare(self):
         raise NotImplementedError

@@ -27,7 +27,15 @@ class ITM(TopologicalMap):
         self.timestep += 2
 
     def adapt(self, node, stimulus):
-        node.pos += self.eta * np.subtract(stimulus, node.pos)
+        # for llm, store delta w and w
+        delta_w_list = []
+
+        dw = self.eta * np.subtract(stimulus, node.pos)
+        node.pos += dw
+
+        delta_w_list.append((node, dw))
+
+        return delta_w_list
 
     def edge_update(self, n, s):
         self.add_edge(n, s)
@@ -69,7 +77,7 @@ class ITM(TopologicalMap):
         nearest, second = self.find_nearest(x)
 
         # adapt winner
-        self.adapt(nearest, x)
+        delta_w = self.adapt(nearest, x)
 
         # update edges
         self.edge_update(nearest, second)
@@ -77,8 +85,10 @@ class ITM(TopologicalMap):
         # update nodes
         self.node_update(nearest, second, x)
 
+        return delta_w, x, n, s
+
 if __name__=='__main__':
-    itm = ITM(loggerlevel='DEBUG')
-    data, labels = circle(samples_per_class=666, numclasses=3, shift_rad=2)
+    itm = ITM(loggerlevel='DEBUG', visualization=True)
+    data, labels = circle(samples_per_class=666, numclasses=1, shift_rad=2)
     data = np.append(data, labels, axis=1)
     itm.run(data)
