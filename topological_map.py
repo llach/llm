@@ -32,6 +32,7 @@ class Node:
 
         self.w_out = w_out
         self.A = None
+        self.sigma = 0.2
 
         if self.w_out is not None:
             self.initA(w_out)
@@ -89,6 +90,8 @@ class Node:
                 neighbors.add(x)
 
         return neighbors
+
+
 
 class Edge:
 
