@@ -36,21 +36,25 @@ class LLM(object):
         self.sigmas = []
 
         # QtGui.QApplication.setGraphicsSystem('raster')
-        app = QtGui.QApplication([])
+        self.app = QtGui.QApplication([])
 
-        win = pg.GraphicsWindow(title=self.name)
-        win.resize(1000, 600)
-        win.setWindowTitle(self.name)
+        self.win = pg.GraphicsWindow(title=self.name)
+        self.win.resize(1000, 600)
+        self.win.setWindowTitle(self.name)
 
         # Enable antialiasing for prettier plots
         pg.setConfigOptions(antialias=True)
 
         self.node_plot = None
-        self.edge_plot = None
+        self.edge_plots = []
+        self.wc_plot = None
+        self.wc_edges = []
 
-        timer = QtCore.QTimer()
-        timer.timeout.connect(self.train)
-        timer.start(50)
+        self.node_view = self.win.addPlot()
+
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.train)
+
 
     def init(self, data, targets):
         self.data = data
@@ -62,31 +66,49 @@ class LLM(object):
         for node, idx in zip(new_nodes, stimulus_idxs):
             node.init_llm_params(self.targets[idx])
 
-        self.node_plot = self.win.addPlot()
+        self.node_plot = pg.ScatterPlotItem( pen=pg.mkPen('r'))
+        self.node_view.addItem(self.node_plot)
+
+        self.wc_plot = pg.ScatterPlotItem(pen=pg.mkPen('g'))
+        self.node_view.addItem(self.wc_plot)
+
 
     def draw(self):
 
-        # create position array
-        if self.mapping_method.data_dim is 1:
-            node_positions = np.array([[n.pos, 0] for n in self.nodes])
-        else:
-            node_positions = np.array([n.pos for n in self.nodes])
+        # node positions
+        pos = np.array([np.array([n.pos, 0]) for n in self.mapping_method.nodes])
+        self.node_plot.setData(pos=pos)
 
-        # create color array
-        node_colors = np.array(self.node_count * [[0, 1, 0, 0.9]])
+        # wc plot
+        wc_pos = np.array([np.array([n.pos, n.w_out]) for n in self.mapping_method.nodes])
+        self.wc_plot.setData(pos=wc_pos)
 
-        # create size array
-        node_sizes = np.array(self.node_count * [0.025])
+        # remove wc edges
+        # for wep in self.wc_edges:
+        #     self.node_view.removeItem(wep)
+        #
+        # # build new wc edges
+        # for i in range(self.mapping_method.node_count - 1):
+        #     ed = pg.PlotCurveItem()
+        #     ed.setData(np.array([wc_pos[i][0], wc_pos[i+1][0]]), np.array([wc_pos[i][1], wc_pos[i+1][1  ]]))
+        #     self.wc_edges.append(ed)
+        #     self.node_view.addItem(ed)
 
-        # update plot item
-        self.node_plot.setData(pos=self.node_positions, size=self.node_sizes, color=self.node_colors)
+        # remove all edges
+        for ep in self.edge_plots:
+            self.node_view.removeItem(ep)
 
-        # update all edge positions
-        for e in self.edges:
+        # update all edge and plot them
+        for e in self.mapping_method.edges:
+            ed = pg.PlotCurveItem()
             e.update_plot_item()
+            ed.setData(np.array([ e.n0.pos, e.n1.pos ]), np.array([ 0, 0 ])  )
+            self.edge_plots.append(ed)
+            self.node_view.addItem(ed)
 
     def run(self):
         print('starting llm')
+        self.timer.start(50)
         QtGui.QApplication.instance().exec_()
 
     def train(self, max_it=10000):
@@ -113,13 +135,12 @@ class LLM(object):
         qe = [qe/np.linalg.norm(qe)]
         delta_A = self.eta_a * np.matmul(y_error, qe)
         n.A = np.add(n.A, delta_A)
-
-        print(n.pos)
+        self.draw()
 
 
 if __name__ == '__main__':
     llm = LLM()
-    data_in = np.linspace(start=0, stop=10*math.pi, num=400) # gng node max==100, 4 points per node
+    data_in = np.linspace(start=0, stop=3*math.pi, num=400) # gng node max==100, 4 points per node
     targets = [math.sin(x) for x in data_in] # targets for supervised w_out part
     llm.init(data_in, targets)
-    llm.train()
+    llm.run()
