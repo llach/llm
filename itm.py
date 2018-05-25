@@ -79,10 +79,8 @@ class ITM(TopologicalMap):
         return new_node
 
     def train(self):
-        if self.timestep > len(self.data):
-            return
 
-        x, x_idx = self.data[self.timestep-1], self.timestep-1
+        x, x_idx = self.data[self.timestep % self.timestep-1], self.timestep % self.timestep-1
         # matching
         nearest, second = self.find_nearest(x)
 
