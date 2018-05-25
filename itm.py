@@ -9,7 +9,7 @@ class ITM(TopologicalMap):
     def __init__(self, *args, **kwargs):
         self.name = "ITM - Instantaneous Topological Map"
         super(ITM, self).__init__(*args, **kwargs)
-        self.eta = kwargs.get('eta', 0.1)
+        self.eta = kwargs.get('eta', 0.1) # map breaks if eta > 0.1 ?!
         self.r_max = kwargs.get('r_max', None)
         self.node_min = 2
 
@@ -78,7 +78,7 @@ class ITM(TopologicalMap):
         self.node_update(nearest, second, x)
 
 if __name__=='__main__':
-    itm = ITM(eta=0.1,  loggerlevel='DEBUG')
+    itm = ITM(loggerlevel='DEBUG')
     data, labels = circle(samples_per_class=666, numclasses=3, shift_rad=2)
     data = np.append(data, labels, axis=1)
     itm.run(data)
