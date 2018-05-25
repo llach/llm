@@ -26,27 +26,16 @@ class LLM(object):
 
     def __init__(self, *args, **kwargs):
         self.name="LLM - Local Linear Map"
-        self.mapping_method = kwargs.get('mapping', GNG())
-        self.interpolation_str = kwargs.get('interpolation_function','VQ')
-        self.sigmas = []
+        self.mapping_method = kwargs.get('mapping', ITM())
         self.eta_out = kwargs.get('eta_out', 0.1)
         self.eta_a = kwargs.get('eta_a', 0.1)
-        self.y = None # interpolation function
-        self.set_interpolation_function(self.interpolation_str)
+        self.y = kwargs.get('interpolation_function',simple_vq)
+        self.sigmas = []
 
-    # sets interpolation function that is to be used, defaults to VQ
-    def set_interpolation_function(self, str_fun):
-        if str_fun == 'soft_max':
-            self.y = soft_max
-        elif str_fun == 'std_llm':
-            self.y = std_llm
-        else:
-            self.y = simple_vq
 
     def init(self, data, targets):
         self.data = data
         self.targets = targets
-
 
     def train(self, max_it=10000):
         self.mapping_method.data = self.data
@@ -76,7 +65,7 @@ class LLM(object):
             qe = [qe/np.linalg.norm(qe)]
             delta_A = self.eta_a * np.matmul(y_error, qe)
             n.A = np.add(n.A, delta_A)
-            print("running")
+            print(n.w_out, n.A)
 
 if __name__ == '__main__':
     llm = LLM()

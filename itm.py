@@ -18,13 +18,20 @@ class ITM(TopologicalMap):
         # determine average distance between two consecutive data points
         if self.r_max is None:
             dist = 0
-            for x in zip(data[:-1],data[1:]):
+            for x in zip(self.data[:-1],self.data[1:]):
                 dist += self.dist(x[0], x[1])
-            self.r_max = 0.5*(dist/len(data))
+            self.r_max = 0.5*(dist/len(self.data))
             self.logger.debug("r_max: %f" %self.r_max)
-        self.add_node(self.data[0])
-        self.add_node(self.data[1])
+        new_nodes = []
+        stimulus_idxs = []
+        for i in range(2):
+            # add two initial nodes
+            stimulus, stimulus_idx = self.data[i], i
+            n = self.add_node(stimulus)
+            new_nodes.append(n)
+            stimulus_idxs.append(stimulus_idx)
         self.timestep += 2
+        return new_nodes, stimulus_idxs
 
     def adapt(self, node, stimulus):
         # for llm, store delta w and w
