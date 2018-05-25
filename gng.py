@@ -3,7 +3,6 @@
 from topological_map import TopologicalMap
 
 import numpy as np
-import random
 
 class GNG(TopologicalMap):
 
@@ -34,14 +33,27 @@ class GNG(TopologicalMap):
         self.q_node = None
         self.logger.debug('Initialized '+self.name)
 
+    def get_random_point(self):
+        stimulus_idx = np.random.choice(len(self.data))
+        stimulus = self.data[stimulus_idx]
+        return stimulus, stimulus_idx
+
     def prepare(self):
 
-        # add two initial nodes
-        self.add_node(random.choice(self.data))
-        self.add_node(random.choice(self.data))
+        new_nodes = []
+        stimulus_idxs = []
+        for i in range(self.node_min):
+            # add two initial nodes
+            stimulus, stimulus_idx = self.get_random_point()
+            n = self.add_node(stimulus)
+            new_nodes.append(n)
+            stimulus_idxs.append(stimulus_idx)
+
 
         # increment timestep
-        self.timestep += 2
+        self.timestep += self.node_min
+        return new_nodes, stimulus_idxs
+
 
     def adapt(self, node, stimulus):
 
@@ -101,6 +113,8 @@ class GNG(TopologicalMap):
         # increase winners error
         n.error += self.dist(n.pos, stimulus)**2
 
+        new_node = None
+
         # update node with highest error 
         if self.q_node is None or n.error >= self.q_node.error:
             self.q_node = n
@@ -120,11 +134,11 @@ class GNG(TopologicalMap):
             
             # create error reducing node r
             r_node = self.add_node(r_node_position)
-
             # be aware of node max!
             if r_node is None:
                 return
 
+            new_node = r_node
             # replace edge q <---> p with edges q <-> r <-> p
             self.remove_edge(self.q_node.get_edge_to_neighbor(p_node))
 
@@ -139,12 +153,13 @@ class GNG(TopologicalMap):
         # finally, update all node errors
         for node in self.nodes:
             node.error -= self.beta * node.error
+
+        return new_node
     
     def train(self):
 
         # randomly select datapoint
-        stimulus = random.choice(self.data)
-
+        stimulus, stimulus_idx = self.get_random_point()
         # find n, s
         n, s = self.find_nearest(stimulus)
 
@@ -155,9 +170,9 @@ class GNG(TopologicalMap):
         self.edge_update(n, s)
 
         # update nodes
-        self.node_update(n, s, stimulus)
+        new_node = self.node_update(n, s, stimulus)
 
-        return delta_w, stimulus, n, s
+        return delta_w, stimulus, n, s, new_node, stimulus_idx
 
 
 if __name__ == '__main__':

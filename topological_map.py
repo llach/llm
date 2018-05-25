@@ -38,7 +38,8 @@ class Node:
         # grid position for som
         self.grid_position = grid_position
 
-    def initA(self, w_out=np.array([0])):
+    def init_llm_params(self, w_out):
+        self.w_out = w_out
         w_in = self.pos
         shape_win = np.shape(w_in)
         shape_wo = np.shape(w_out)
@@ -157,8 +158,6 @@ class TopologicalMap(object):
 
         if self.name is None:
             self.name = '--unnamed--'
-
-        self.llm_done = True
 
         # should this network also visualize itself?
         self.viz = kwargs.get('visualization', False)
@@ -425,7 +424,7 @@ class TopologicalMap(object):
         self.logger.debug('Network Timestep: %d\n#Nodes: %d\n#Edges: %d' % (self.timestep, self.node_count, self.edge_count))
 
         # call overridden train function
-        delta_w, x, n, s = self.train()
+        delta_w, x, n, s, new_node, stimulus_idx = self.train()
 
         # plot network, if viz is enabled
         if self.viz:
@@ -434,8 +433,7 @@ class TopologicalMap(object):
         # increment timestep
         self.timestep += 1
 
-        self.llm_done = False
-        return delta_w, x, n, s
+        return delta_w, x, n, s, new_node, stimulus_idx
 
     def prepare(self):
         raise NotImplementedError

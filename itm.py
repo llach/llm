@@ -60,19 +60,22 @@ class ITM(TopologicalMap):
 
         thales = np.dot(np.subtract(n.pos, stimulus), np.subtract(s.pos, stimulus))
         dns = self.dist(stimulus, n.pos)
+        new_node = None
         if  thales > 0 and dns > self.r_max:
-            new_node = self.add_node(position=stimulus)
-            self.add_edge(new_node, n)
+            node = self.add_node(position=stimulus)
+            self.add_edge(node, n)
+            new_node = node
+
 
         if self.dist(n.pos, s.pos) < 0.5*self.r_max:
             self.remove_node(s)
-
+        return new_node
 
     def train(self):
         if self.timestep > len(self.data):
             return
 
-        x = self.data[self.timestep-1]
+        x, x_idx = self.data[self.timestep-1], self.timestep-1
         # matching
         nearest, second = self.find_nearest(x)
 
@@ -83,9 +86,9 @@ class ITM(TopologicalMap):
         self.edge_update(nearest, second)
 
         # update nodes
-        self.node_update(nearest, second, x)
+        new_node = self.node_update(nearest, second, x)
 
-        return delta_w, x, nearest, second
+        return delta_w, x, nearest, second, new_node, x_idx
 
 if __name__=='__main__':
     itm = ITM(loggerlevel='DEBUG', visualization=True)
