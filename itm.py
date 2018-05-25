@@ -85,7 +85,7 @@ class ITM(TopologicalMap):
         # update nodes
         self.node_update(nearest, second, x)
 
-        return delta_w, x, n, s
+        return delta_w, x, nearest, second
 
 if __name__=='__main__':
     itm = ITM(loggerlevel='DEBUG', visualization=True)

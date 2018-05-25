@@ -9,11 +9,11 @@ import numpy as np
 import math
 import random
 import logging
-from .util.euclidean_dist import euclidean_dist
+from util.euclidean_dist import euclidean_dist
 
 class Node:
 
-    def __init__(self, pos, grid_position=None):
+    def __init__(self, pos, grid_position=None, w_out=None):
 
         # UUID
         self.uuid = str(uuid.uuid4())[:8]
@@ -30,8 +30,26 @@ class Node:
         # initialize node error with zero
         self.error = 0
 
+        self.w_out = w_out
+        self.A = None
+
+        if self.w_out is not None:
+            self.initA(w_out)
         # grid position for som
         self.grid_position = grid_position
+
+    def initA(self, w_out=np.array([0])):
+        w_in = self.pos
+        shape_win = np.shape(w_in)
+        shape_wo = np.shape(w_out)
+        # default to a 1x1 shape for A ie int
+        if shape_wo == ():
+            shape_wo = (1,)
+        if shape_win == ():
+            shape_win = (1,)
+
+        self.A = np.zeros((shape_wo[0], shape_win[0]))
+
 
     # edge to n is returned or exception thrown
     def get_edge_to_neighbor(self, n):
@@ -140,6 +158,8 @@ class TopologicalMap(object):
         if self.name is None:
             self.name = '--unnamed--'
 
+        self.llm_done = True
+
         # should this network also visualize itself?
         self.viz = kwargs.get('visualization', False)
 
@@ -159,7 +179,7 @@ class TopologicalMap(object):
         # init node and edge sets
         self.nodes = set([])
         self.edges = set([])
-
+        self.new_nodes = set([])
         # save iteration we are in
         self.timestep = 0
 
@@ -238,7 +258,7 @@ class TopologicalMap(object):
         # create and add node to network
         n = Node(position, grid_position)
         self.nodes.add(n)
-
+        self.new_nodes.add(n)
         # increase node count
         self.node_count += 1
 
@@ -414,6 +434,7 @@ class TopologicalMap(object):
         # increment timestep
         self.timestep += 1
 
+        self.llm_done = False
         return delta_w, x, n, s
 
     def prepare(self):
