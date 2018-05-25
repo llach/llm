@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 '''
 Copyright 2016 Akseli Palén.
 Created 2016-04-02.
